@@ -1,6 +1,6 @@
 CREATE DATABASE myinst USER SYS IDENTIFIED BY oracle USER SYSTEM IDENTIFIED BY oracle LOGFILE
 GROUP 1 '/u01/app/oracle/oradata/myinst/myinst_log1a.log' SIZE 100M,
-GROUP 2 '/u01/app/oracle/oradata/myinst/myinst_log12a.log' SIZE 100M
+GROUP 2 '/u01/app/oracle/oradata/myinst/myinst_log2a.log' SIZE 100M
 MAXLOGFILES 5
 MAXLOGMEMBERS 5
 MAXLOGHISTORY 1
@@ -8,7 +8,7 @@ MAXDATAFILES 30
 MAXINSTANCES 1
 CHARACTER SET US7ASCII
 NATIONAL CHARACTER SET AL16UTF16
-DATAFILE '/u01/app/oracle/oradata/myinst/system01myinst.dbf' SIZE 20M
+DATAFILE '/u01/app/oracle/oradata/myinst/system01myinst.dbf' SIZE 100M
 REUSE
 EXTENT MANAGEMENT LOCAL
 SYSAUX DATAFILE '/u01/app/oracle/oradata/myinst/sysaux01.dbf' SIZE
