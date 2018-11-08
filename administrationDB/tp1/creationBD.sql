@@ -8,7 +8,7 @@ MAXDATAFILES 30
 MAXINSTANCES 1
 CHARACTER SET US7ASCII
 NATIONAL CHARACTER SET AL16UTF16
-DATAFILE '/u01/app/oracle/oradata/myinst/system01myinst.dbf' SIZE 100M
+DATAFILE '/u01/app/oracle/oradata/myinst/system01myinst.dbf' SIZE 200M
 REUSE
 EXTENT MANAGEMENT LOCAL
 SYSAUX DATAFILE '/u01/app/oracle/oradata/myinst/sysaux01.dbf' SIZE
