@@ -1,161 +1,76 @@
+Bertrand NDAYISENGA
+Master 2 Informatique
+Systèmes d'information et d'aide à la décision
+Année Académique : 2017-2018
 
-##Compte rendu TP1 Administration des bases de données - TP1
+# Administration des bases de données - TP2
 
-#Analyse d'une instance Oracle existance
+## Utilisation des outils d'adminstartion mode ligne
 
-1. connection à une instance oracle
->  Xhost + 
-ssh -x oracle@172.16.36.132
-password : oracle
-sqlplus  / as sysdba
+1. Connection en tant que SYS à l'instance oracle myinst. 
+```sql
+sqlplus / as sysdba
+startup pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+show parameter instance_name
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+instance_name			string	 myinst
+```
 
-2. nom de l'instance surlequel on est connecté
-> SELECT instance_name from v$instance;
-orcl
+2. Taille du buffer cache de données.
+```sql
+SELECT * FROM v$sga;
+NAME			        VALUE
+-------------------- ----------
+Fixed Size		        2213736
+Variable Size	        922749080
+Database Buffers        654311424
+Redo Buffers		    7434240
+```
 
-3. nom de la base de données, le nom de l'instance et la taille des blocs de la base de données
-> SELECT database_name from v$database;
-ORCL
+3. Taille du SGA
+> La taille du SGA est la somme de toutes les tailles.
 
->select value from v$parameter where name = 'db_block_size';
-8192
-
-4. les noms et les tailles des fichiers de données
-> select name,blocks from v$datafile;
-
-/u01/app/oracle/oradata/orcl/system01.dbf
-     87040
-
-/u01/app/oracle/oradata/orcl/sysaux01.dbf
-     67840
-
-/u01/app/oracle/oradata/orcl/undotbs01.dbf
-     13440
-
-
-/u01/app/oracle/oradata/orcl/users01.dbf
-       640
-
-/u01/app/oracle/oradata/orcl/example01.dbf
-     12800
+4. Lister les colonnes, **owner**, **table_name**, **tablespace_name** de la vue **dba_tables** du dictinnaire de données pour les tables et les tables et tablespaces dont le propriétaire est l'utilsateur  SCOTT.
 
 
-6. Affache du numero de version 
-> select version from v$instance
+## Mise à jour du ficher de contrôle
+1. Sauvegarde du fichier de contrôle
+```sql
+ALTER DATABASE BACKUP CONTROLFILE TO TRACE;
+Database altered.
+```
+> Cette commande crée un fichier texte dans le répertoire **USER_DUMP_DEST**, qu'on peut modifier pour reconstruire un nouveau fichier de contrôle.
 
-7. le nombre de paramètrer
-select value from v$parameter where name  ='processes';
->150
+2. Vérification de création des fichiers de contrôle. 
+> En regardant le fichier le fichier **alert_orcl.log** se trouvant **/u01/app/oracle/diag/rdbms/orcl/orcl/trace** à la fin de fichier, l'emplacement des sauvegardes est marqué.
+```txt
+Fri Oct 26 16:20:13 2018
+ALTER DATABASE BACKUP CONTROLFILE TO TRACE
+Backup controlfile written to trace file /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_2990.trc
+```
+3. Emplacement des souvegarde.
+```sql
+show parameter control_files
 
-8.
-9. 
-DB_BLOCK_SIZE must be 8192 to mount this database (not 16384)
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+control_files			string	 /u01/app/oracle/oradata/myinst/control01.ctl
+```
+4. Démarrage sans fichier de contôle
+```sql
+startup pfile=/u01/app/oracle/admin/orcl/pfile/init2.ora
+ORA-00205: error in identifying control file, check alert log for more info
+```
+> Il a une erreur lors de l'ouverture de la base de données.
 
-10. énumaration des paramètres d'initialisation par défaut.
-NUM						    NUMBER
- NAME						    VARCHAR2(80)
- TYPE						    NUMBER
- VALUE						    VARCHAR2(4000)
- DISPLAY_VALUE					    VARCHAR2(4000)
- ISDEFAULT					    VARCHAR2(9)
- ISSES_MODIFIABLE				    VARCHAR2(5)
- ISSYS_MODIFIABLE				    VARCHAR2(9)
- ISINSTANCE_MODIFIABLE				    VARCHAR2(5)
- ISMODIFIED					    VARCHAR2(10)
- ISADJUSTED					    VARCHAR2(5)
- ISDEPRECATED					    VARCHAR2(5)
- ISBASIC					    VARCHAR2(5)
- DESCRIPTION					    VARCHAR2(255)
- UPDATE_COMMENT 				    VARCHAR2(255)
- HASH						    NUMBER
+6. Le nombre maximum de fichiers de données que l'on puisse créer dans la base de données aisn que le le nombre actuell de fichiers de données dans la base de données. 
+```sql
+select records_total, records_used from v$controlfile_record_section where type='DATAFILE';
+ RECORDS_TOTAL RECORDS_USED
+------------- ------------
+	    30		 7
+```
+> Comme spécifier dans le script de création de la bse de données du TP1, le nombre maximum de ficher que l'on puisse créer est égale à **30**
 
-
-11. connection en tant que scott/tiger
-
-connect scott/tiger
-ou
-sqlplus scott/tiger
-
-INSERT INTO EMP (EMPNO,ENAME,JOB,MGR,SAL,DEPTNO)VALUES(800,'DUPONT','ANALYST',7566,1500,20);
-
-INSERT INTO EMP (EMPNO,ENAME,JOB,MGR,SAL,DEPTNO)VALUES(800,'DUJARDIN','ANALYST',7566,1500,20);
-
-
-# CREATION D'UNE BASE DE DONNEES
-
-1. question 1,2,3 faire des mkdir dans les dossier correspondant
-
-4. 
-- copier coller le fichier initorcl165645.ora se trouvant dans /u01/app/oracle/admin/orcl/pfile
-   dans le dossier /u01/app/oracle/admin/myinst/pfile puis le renomer initmyinst.ora
-- remplacer toutes les occurences "orcl" se trouvant dans initmyinst.ora par "myinst"
-- commenter la ligne  :
-  undo_tablespace=UNDOT......
-- ajouter la ligne 
-  instance_name = myinst (en bas de db_name = myinst)
-
-5. Modifier le script crationBD.sql en comme indiqué dans le tp mais en laissant les tailles
-
-'''
-CREATE DATABASE myinst USER SYS IDENTIFIED BY oracle USER SYSTEM IDENTIFIED BY oracle LOGFILE
-GROUP 1 '/u01/app/oracle/oradata/myinst/myinst_log1a.log' SIZE 100M,
-GROUP 2 '/u01/app/oracle/oradata/myinst/myinst_log2a.log' SIZE 100M
-MAXLOGFILES 5
-MAXLOGMEMBERS 5
-MAXLOGHISTORY 1
-MAXDATAFILES 30
-MAXINSTANCES 1
-CHARACTER SET US7ASCII
-NATIONAL CHARACTER SET AL16UTF16
-DATAFILE '/u01/app/oracle/oradata/myinst/system01myinst.dbf' SIZE 100M
-REUSE
-EXTENT MANAGEMENT LOCAL
-SYSAUX DATAFILE '/u01/app/oracle/oradata/myinst/sysaux01.dbf' SIZE
-325M REUSE
-DEFAULT TEMPORARY TABLESPACE tempts1
-TEMPFILE '/u01/app/oracle/oradata/myinst/temp01.dbf'
-SIZE 20M REUSE
-UNDO TABLESPACE undotbs
-DATAFILE '/u01/app/oracle/oradata/myinst/undotbs01.dbf' SIZE 200M REUSE AUTOEXTEND ON MAXSIZE UNLIMITED;
-'''
-
-6. Démarrage de l'instance en mode nomount :
->  startup nomount pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
-
-puis éxecuter le script de création de la base de données (ci-dessus)
-
-
-7. monter du fichier
->  startup  upgrade pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
-
-verfication des fichiers de base de données : 
-select name,blocks from v$datafile;
-
-> /u01/app/oracle/oradata/myinst/system01myinst.dbf
-     12800
-
-/u01/app/oracle/oradata/myinst/sysaux01.dbf
-     41600
-
-/u01/app/oracle/oradata/myinst/undotbs01.dbf
-     25600
-
-8. affichage des utilisateurs de la base de données :
-
-> select * from all_users
-
-# CREATION DE VUES DU DICTIONNAIRE DE DONN2ES ET CREATION DES PACKAGES STANDARD
-
-1. start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/catalog.sql
-
-2. select username from dba_users;
-
-3. start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/catproc.sql
-
-3. start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/utlsampl.sql
-
-
-
-
-select owner, table_name, tablespace_name from dba_tables where owner='SCOTT';
 

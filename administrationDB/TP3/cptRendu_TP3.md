@@ -3,8 +3,41 @@ Master 2 Informatique
 Systèmes d'information et d'aide à la décision
 Année Académique : 2017-2018
 
-# Administration des bases de données - TP1
+
+
+# Administration des bases de données - TP3
 ## Compte rendu
+
+## Gestion des fichiers de données et des tablespaces
+
+SELECT instance_name from v$instance;
+
+Question à ne pas faire;
+
+ne pas créer la table
+
+INSTANCE_NAME
+----------------
+myinst
+
+
+1. Création des tables space : 
+
+CREATE TABLESPACE DATA01 DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data01' size 2m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+CREATE TABLESPACE TEMP DATAFILE '/u01/app/oracle/oradata/myinst/Disk3/temp02' size 5m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+CREATE TABLESPACE INDX01 DATAFILE '/u01/app/oracle/oradata/myinst/Disk3/indx01' size 3m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+
+CREATE TABLESPACE RONLY DATAFILE '/u01/app/oracle/oradata/myinst/Disk1/ronly01' size 2m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+
+-----------------------------------
 
 ### Analyse d'une instance Oracle existance
 
