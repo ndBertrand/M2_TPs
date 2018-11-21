@@ -51,10 +51,42 @@ gedit init.ora.94201816856
 
 question pour le nombre de processuse.
 
-
+11
 
 
 CREATION D'UNE BD
+
+ copier coller le fichier initorcl5465.ora, ensuite la personalisée
+ remplacer tous les orcl par "myinst"
+
+ commenter la ligne
+ undo_tablespace=UNDOT...
+
+ ajouter la ligne
+ instacence _name=myinst
+
+ 
+ lancer avec nomount
+ startup nomount pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+
+
+monter le fichier
+
+ startup  pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+
+
+CREATION DES VUES
+
+création de vues de dictionnaire de données
+
+1. start /u01/app/oracle/product/11.2.1/db_1/rdbw/amin/catalog.sql
+
+2. select username from dab_users;
+
+3 start /u01/app/........................../admin/catproc.sql
+  start /u01/app/.........................../publldd.sql
+
+4. start /u01/app/......................../wtlsample.sql
 
 
 

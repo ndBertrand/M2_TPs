@@ -1,0 +1,294 @@
+UTILISATION DES OUTILS D4ADMINISTRATION MODE LIGNE
+
+
+1. connection en tant que sys à l'instance oracle
+
+sqlplus / as sysdba
+startup  upgrade pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+show parameter instance_name
+
+2. question 2 et 3
+select * from v$sga;
+
+NAME			  VALUE
+-------------------- ----------
+Fixed Size		2213736
+Variable Size	      939526296
+Database Buffers      637534208
+Redo Buffers		7434240
+
+
+buffer-> database buffers
+la taille du sga est la somme de toutes les size.
+
+
+4. select owner,table_name, tablespace_name from dba_tables where owner='SCOTT';
+
+
+MISE A JOUR DU FICHIER DE CONTROLE
+
+
+1 ALTER DATABASE BACKUP CONTROLFILE TO TRACE;
+
+>Cette commande crée un fichier en format texte dans le répertoire USER_DUMP_DEST, qu'on peut modifier pour reconstruire un nouveau fichier de contrôle.
+
+cette commande va générer un ficher contena la commande create controlefile ( 
+
+2. il faut regarder dans le dossier
+
+/u01/app/oracle/diag/rdbms/orcl/orcl/trace
+
+dedans il y a une ligne qui commentre le fichier qui a été cré
+
+Fri Oct 26 16:20:13 2018
+ALTER DATABASE BACKUP CONTROLFILE TO TRACE
+Backup controlfile written to trace file /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_2990.trc
+
+il ya une autre option aussi
+ou on peut mettre le nom du fichier
+
+
+4. demarage sans fichier de controle.
+cp init.ora.94201816856 init2.ora
+sqlplus / as sysdba
+startup pfile=/u01/app/oracle/admin/orcl/pfile/init2.ora
+ORA-00205: error in identifying control file, check alert log for more info
+
+il y a une erreur lors de l'ouverture de la base de données.
+
+
+5.
+on demander de multiplexer le ficher de controle
+
+si on a 2 ou plusieurs fichiers de controle, ce sont les même ce sont des copie
+
+-> faire un shutdown immediate(obligatoire pour ne pas avoir de problème)
+
+-> modifier le fichier de paramètre(le fichier init) 
+controle_files : le decommenté
+on le ajoute un autre fichier de contolre ("--------","---------","---------)
+
+->ensuite faire la copier du fichier de controle qlq part sur le disk comme $HOME/.....
+
+-> après on redemare vaer
+startup pfile=
+
+-> sleect name from v$controlfile;
+-----------------------------------------
+shutdown immediate 
+
+modificaton du fichier init2.ora 
+> control_files=("/adminbd/DISK2/control01.ctl", "/u01/app/oracle/flash_recovery_area/orcl/control02.ctl","/adminbd/DISK2/control03.ctl")
+
+sqlplus / as sysdba
+
+
+cp /u01/app/oracle/admin/orcl/pfile/init2.ora $Home/adminbd/DISK2/contol03.ctl
+
+startup pfile=/u01/app/oracle/admin/orcl/pfile/init2.ora
+
+
+6. select records_total, records_used from v$controlfile_record_section where type='DATAFILE';
+
+RECORDS_TOTAL RECORDS_USED
+------------- ------------
+	  100		 5
+
+
+
+7. 
+
+
+
+	mise à jour des fichiers de reprise
+
+les logs files fonctionne par groupe
+
+les fichiers de chaque groupes s'appellent les membres.
+
+on n'est pas obligé d'avoir le même de fichier dans tous le groupes
+
+dans un group tous les fichiers sont des copies
+
+il écrit en même temps dans les fichiers d'un même groupe s'il sont plein il passe sur un autre groupe
+et on continue à écrire. on revient au départ et on archive les fichiers logs
+
+
+
+il ya deux vues
+
+v$logfile : information sur les fichier
+v$log : information sur les groupes(la taille des fichiers se trouve les groupes)
+
+
+
+startup nomount : ça demare juste l'instance. ça prends juste la mémoire du sga 
+	mount : il démare l'instance , il va lire les fichiers de controle
+	open : à ce moment il ouvre la bd(çad il ouvre)
+
+dans certains cas il faut l'ouvrir avec un mode bien spécifique.
+dans la création de la base de données : on utilise nomount (car il n'ya aucun fichier)
+
+dans le cas ou il y a un problème et qu'on a pas de fichier de controle : 
+il faut ouvir avec nomount
+
+s'il ya un problème avec les fichier de controle on utilse mount car les fichier de controle n'ont pas de problèmes.
+
+
+
+------------------------------------
+1. select member from v$logfile;
+
+MEMBER
+--------------------------------------------------------------------------------
+/u01/app/oracle/oradata/orcl/redo03.log
+/u01/app/oracle/oradata/orcl/redo02.log
+/u01/app/oracle/oradata/orcl/redo01.log
+
+afficher le nombre de groupe
+select count(*) from v$log;
+
+select members from v$log;
+
+   MEMBERS
+----------
+	 1
+	 1
+	 1
+
+
+2. mode d'archivage
+select log_mode from v$database;
+
+LOG_MODE
+------------
+NOARCHIVELOG
+
+3. select * from v$log where status = 'CURRENT';
+
+GROUP#    THREAD#  SEQUENCE#      BYTES  BLOCKSIZE	  MEMBERS ARC
+---------- ---------- ---------- ---------- ---------- ---------- ---
+STATUS		 FIRST_CHANGE# FIRST_TIM NEXT_CHANGE# NEXT_TIME
+---------------- ------------- --------- ------------ ---------
+	 2	    1	      14   52428800	   512		1 NO
+CURRENT 	       1205703 26-OCT-18   2.8147E+14
+
+4. ALTER SYSTEM SWITCH LOGFILE ; 
+
+ROUP#    THREAD#  SEQUENCE#      BYTES  BLOCKSIZE	  MEMBERS ARC
+---------- ---------- ---------- ---------- ---------- ---------- ---
+STATUS		 FIRST_CHANGE# FIRST_TIM NEXT_CHANGE# NEXT_TIME
+---------------- ------------- --------- ------------ ---------
+	 3	    1	      15   52428800	   512		1 NO
+CURRENT 	       1215552 26-OCT-18   2.8147E+14
+
+
+
+
+
+
+consulter : https://docs.oracle.com/cd/B28359_01/server.111/b28310/onlineredo003.htm#ADMIN11320
+
+
+
+
+
+
+
+
+
+============================DEBUT TP1===============================
+# connection à la machine virtuelle
+
+Xhost + 
+ssh -X oracle@172.16.36.132
+password : oracle
+
+#changer le mot de pass
+passwd 
+
+firefox
+#firefox &
+
+#gedit
+gedit
+
+
+#login as admin
+sqlplus / as  sysdba
+
+
+#lancer 
+select instance_name from v$instance
+# on peut utiliser aussi show paramètres pour voir les paramètres,
+ça donne le même résultat.
+
+#si la commande précédente ne marche pas, faire,
+startup
+
+#pour connaite les noms de colonnes
+desc    v$instance
+ 	v$database
+	v$parameter
+	v$datafile
+#desc raccourci de la commande discribe.
+
+
+5) select * from  v$option where value = 'TRUE'
+
+8) select coutn(*) from v$fixedtable where name like 'v$%';
+
+10) select name from v$parameter where isdefault = 'TRUE'
+
+9) on nous demande de double la taille de db_block;
+il faut aujouter l'option pour que orcle le prenne en compte
+>startup pfile initora
+
+cd /u01/app/oracle/admin/orcl/pfile
+gedit init.ora.94201816856
+
+
+
+question pour le nombre de processuse.
+
+11
+
+
+CREATION D'UNE BD
+
+ copier coller le fichier initorcl5465.ora, ensuite la personalisée
+ remplacer tous les orcl par "myinst"
+
+ commenter la ligne
+ undo_tablespace=UNDOT...
+
+ ajouter la ligne
+ instacence _name=myinst
+
+ 
+ lancer avec nomount
+ startup nomount pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+
+
+monter le fichier
+
+ startup  pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+
+
+CREATION DES VUES
+
+création de vues de dictionnaire de données
+
+1. start /u01/app/oracle/product/11.2.1/db_1/rdbw/amin/catalog.sql
+
+2. select username from dab_users;
+
+3 start /u01/app/........................../admin/catproc.sql
+  start /u01/app/.........................../publldd.sql
+
+4. start /u01/app/......................../wtlsample.sql
+
+
+
+
+

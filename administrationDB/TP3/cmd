@@ -1,0 +1,98 @@
+Question à ne pas faire;
+
+ne pas créer la tablespace RFS
+
+ne pas faire les question 7,8,16
+
+polur la partie segement,
+
+ne pas faire les question 4 et 5
+
+
+
+
+
+# creation des tablespace 
+
+CREATE TABLESPACE DATA01 DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data01' size 2m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+CREATE TEMPORARY TABLESPACE TEMP TEMPFILE '/u01/app/oracle/oradata/myinst/Disk3/temp02.dbf' SIZE 5M AUTOEXTEND ON;
+
+
+CREATE TABLESPACE INDX01 DATAFILE '/u01/app/oracle/oradata/myinst/Disk3/indx01' size 3m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+
+CREATE TABLESPACE RONLY DATAFILE '/u01/app/oracle/oradata/myinst/Disk1/ronly01' size 2m 
+EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
+
+
+
+ALTER TABLESPACE RONLY READ ONLY;
+
+# affichage des vues ddu dictionnaire
+
+4. select username, default_tablespace from dba_users;
+
+DEFAULT_TABLESPACE
+------------------------------
+SYSTEM
+SYSTEM
+SYSTEM
+SYSTEM
+SYSTEM
+SYSTEM
+SYSAUX
+SYSAUX
+
+4(prime). 
+
+SELECT TABLESPACE_NAME FROM DBA_DATA_FILES;
+
+
+TABLESPACE_NAME
+------------------------------
+SYSTEM
+SYSAUX
+UNDOTBS
+DATA01
+INDX01
+RONLY
+ rows selected.
+
+4. select username, default_tablspace from dba_users;
+
+
+5. ALTER DATABASE default TABLESPACE DATA01;
+
+Database altered
+
+6. select file_name,tablespace from dba_temp_files;
+
+USERNAME		       DEFAULT_TABLESPACE
+------------------------------ ------------------------------
+SYSTEM			       SYSTEM
+SYS			       SYSTEM
+OUTLN			       SYSTEM
+DBSNMP			       SYSAUX
+APPQOSSYS		       SYSAUX
+ORACLE_OCM		       DATA01
+DIP			       DATA01
+SCOTT			       DATA01
+
+
+
+
+
+question 9
+
+commente augementer la taille des tables space.
+
+il y a 2 solution pour augmenter la taille des tablespace : 
+
+- soit on ajoute des fichiers au table space
+- soit on choisi un fichier et on augmente sa taille.
+
+ALTER DATABASE DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data01' resize 5m
+ALTER TABLESPACE DATA01 ADD DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data02' size 2m 
