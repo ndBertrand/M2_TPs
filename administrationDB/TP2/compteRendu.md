@@ -30,6 +30,13 @@ Redo Buffers		    7434240
 
 3. Taille du SGA
 > La taille du SGA est la somme de toutes les tailles.
+```sql
+SELECT SUM(value) from v$sga;
+SUM(VALUE)
+----------
+1586708480
+
+```
 
 4. Lister les colonnes, **owner**, **table_name**, **tablespace_name** de la vue **dba_tables** du dictinnaire de données pour les tables et les tables et tablespaces dont le propriétaire est l'utilsateur  SCOTT.
 
@@ -64,6 +71,22 @@ ORA-00205: error in identifying control file, check alert log for more info
 ```
 > Il a une erreur lors de l'ouverture de la base de données.
 
+
+5. Multiplexage du ficher de controle
+
+> si on a 2 ou plusieurs fichiers de controle, ce sont les même(ce sont des copie )
+ * faire un shutdown immediate(obligatoire pour ne pas avoir de problème)
+ * modifier le fichier de paramètre(le fichier init) 
+ * décommenter la ligne avec **controle_files**
+ * on le ajoute un autre fichier de contolre ("--------","---------","---------)
+ *ensuite faire la copier du fichier de controle qlq part sur le disk comme $HOME/DISK2
+ * après on redemare 
+Vérification que le fichier de contrôle a bien été crée.
+```SQL
+    startup pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst2.ora
+ select name from v$controlfile;
+```
+
 6. Le nombre maximum de fichiers de données que l'on puisse créer dans la base de données aisn que le le nombre actuell de fichiers de données dans la base de données. 
 ```sql
 select records_total, records_used from v$controlfile_record_section where type='DATAFILE';
@@ -73,4 +96,6 @@ select records_total, records_used from v$controlfile_record_section where type=
 ```
 > Comme spécifier dans le script de création de la bse de données du TP1, le nombre maximum de ficher que l'on puisse créer est égale à **30**
 
+7. 
+## Mise à jour des fichiers de reprise
 

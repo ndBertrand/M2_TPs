@@ -6,23 +6,16 @@ Année Académique : 2017-2018
 
 
 # Administration des bases de données - TP3
-## Compte rendu
-
 ## Gestion des fichiers de données et des tablespaces
 
-SELECT instance_name from v$instance;
-
-Question à ne pas faire;
-
-ne pas créer la table
-
-INSTANCE_NAME
-----------------
-myinst
 
 
-1. Création des tables space : 
+`
+Ne pas créer la tablespace RFS, ne pas faire les question 7,8,16 pour la partie Gestion des fichiers de données et des tablespaces et les question 4 et 5 pour  la partie segement,
+`
 
+3. Création des tables space : 
+```sql
 CREATE TABLESPACE DATA01 DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data01' size 2m 
 EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
 
@@ -36,194 +29,80 @@ EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
 CREATE TABLESPACE RONLY DATAFILE '/u01/app/oracle/oradata/myinst/Disk1/ronly01' size 2m 
 EXTENT MANAGEMENT LOCAL AUTOALLOCATE SEGMENT SPACE MANAGEMENT AUTO;
 
-
------------------------------------
-
-### Analyse d'une instance Oracle existance
-
-1. connection à une instance oracle
-```bash
-Xhost + 
-ssh -x oracle@172.16.36.132
-password : oracle
-sqlplus  / as sysdba
-```
-2. nom de l'instance surlequel on est connecté
-```SQL
-SELECT instance_name from v$instance;
-INSTANCE_NAME
-----------------
-orcl
-```
-3. nom de la base de données, le nom de l'instance et la taille des blocs de la base de données
-```SQL
-SELECT database_name from v$database;
-DATABASE_NAME
--------------------------------
-ORCL
-```
-```SQL
-select value from v$parameter where name = 'db_block_size';
-8192
-```
-4. les noms et les tailles des fichiers de données
-```SQL
-select name,blocks from v$datafile;
-
-/u01/app/oracle/oradata/orcl/system01.dbf      87040
-
-/u01/app/oracle/oradata/orcl/sysaux01.dbf      67840
-
-/u01/app/oracle/oradata/orcl/undotbs01.dbf     13440
-
-/u01/app/oracle/oradata/orcl/users01.dbf       640
-
-/u01/app/oracle/oradata/orcl/example01.dbf     12800
+ALTER TABLESPACE RONLY READ ONLY;
 ```
 
-6. Le numéro de version 
-```SQL
-select version from v$instance;
-VERSION
------------------
-11.2.0.1.0
-```
-7. le nombre de paramètrer(s)
-```SQL
-select value from v$parameter where name  ='processes';
-150
-```
-8.
-9. Modification de la taille des blocks
-> Erreur
-> DB_BLOCK_SIZE must be 8192 to mount this database (not 16384)
+4. la liste des tablespaces par défaut
+```sql
+  select username, default_tablespace from dba_users;
 
-10. énumaration des paramètres d'initialisation par défaut.
-```SQL
-select * from dba_profiles where profile='DEFAULT';
-
-PROFILE 		       RESOURCE_NAME			    RESOURCE    LIMIT
----------------------------------------------------------------------
-DEFAULT 		       COMPOSITE_LIMIT			    KERNEL      UNLIMITED
-DEFAULT 		       SESSIONS_PER_USER		    KERNEL      UNLIMITED
-DEFAULT 		       CPU_PER_SESSION			    KERNEL      UNLIMITED
-DEFAULT 		       CPU_PER_CALL			        KERNEL      UNLIMITED
-DEFAULT 		       LOGICAL_READS_PER_SESSION	KERNEL      UNLIMITED
-DEFAULT 		       LOGICAL_READS_PER_CALL		KERNEL      UNLIMITED
-DEFAULT 		       IDLE_TIME			        KERNEL      UNLIMITED
-DEFAULT 		       CONNECT_TIME			        KERNEL      UNLIMITED
-DEFAULT 		       PRIVATE_SGA			        KERNEL      UNLIMITED
-DEFAULT 		       FAILED_LOGIN_ATTEMPTS		PASSWORD    10
-DEFAULT 		       PASSWORD_LIFE_TIME		    PASSWORD    180
-DEFAULT 		       PASSWORD_REUSE_TIME		    PASSWORD    UNLIMITED
-DEFAULT 		       PASSWORD_REUSE_MAX		    PASSWORD    UNLIMITED
-DEFAULT 		       PASSWORD_VERIFY_FUNCTION 	PASSWORD    NULL
-DEFAULT 		       PASSWORD_LOCK_TIME		    PASSWORD    1
-DEFAULT 		       PASSWORD_GRACE_TIME		    PASSWORD    7
-```
-11. 
-    * connection en tant que scott/tiger
-    * Insertion dans la table EMP
-    * Ouverture d'une deuxième session et arrête avec les mode
-        - Immediate
-        - Transaction
-        - Normale
-        - Abort
-```SQL
-connect scott/tiger
-ou
-sqlplus scott/tiger
-```
-```SQL
-INSERT INTO EMP (EMPNO,ENAME,JOB,MGR,SAL,DEPTNO)VALUES(800,'DUPONT','ANALYST',7566,1500,20);
-```
-> avec le mode **Normale** : il y a un arrêt une fois que tous le autres utilisateurs se soient déconnectés
-> avec le mode **Transaction** : il y a un arrêt une fois que toutes les transactions sont validées (dans notre exemple il y aura un arrêt après avoir fait un COMMIT de la requête d'insertion dans la table EMP) même s'il y a encore des utilisateurs connectés.
-> avec le mode **Immediate** : il y a un arrêt immediate  
-> avec le mode **Abort** : on force l'arrêt 
-
-### Création d'une base de données
-
-1. question 1,2,3 faire des mkdir dans les dossier correspondant
-```
-mkdir /u01/app/oracle/admin/myinst
-mkdir /u01/app/oracle/oradata/myinst /u01/app/oracle/flash_recovery_data/myinst
-mkdir /u01/app/oracle/admin/myinst/adump /u01/app/oracle/admin/myinst/dpdump /u01/app/oracle/admin/myinst/pfile
-```
-> copier coller le fichier initorcl165645.ora se trouvant dans /u01/app/oracle/admin/orcl/pfile
-   dans le dossier /u01/app/oracle/admin/myinst/pfile puis le renomer initmyinst.ora.
-remplacer toutes les occurences "orcl" se trouvant dans initmyinst.ora par "myinst"
-commenter la ligne  :   **undo_tablespace=UNDOT.....**
-ajouter la ligne :   **instance_name = myinst (en bas de db_name = myinst)**
-
-5. Modifier le script crationBD.sql en comme indiqué dans le tp mais en laissant les tailles, ce qui donne le script suivant
-```SQL
-CREATE DATABASE myinst USER SYS IDENTIFIED BY oracle USER SYSTEM IDENTIFIED BY oracle LOGFILE
-GROUP 1 '/u01/app/oracle/oradata/myinst/myinst_log1a.log' SIZE 100M,
-GROUP 2 '/u01/app/oracle/oradata/myinst/myinst_log2a.log' SIZE 100M
-MAXLOGFILES 5
-MAXLOGMEMBERS 5
-MAXLOGHISTORY 1
-MAXDATAFILES 30
-MAXINSTANCES 1
-CHARACTER SET US7ASCII
-NATIONAL CHARACTER SET AL16UTF16
-DATAFILE '/u01/app/oracle/oradata/myinst/system01myinst.dbf' SIZE 100M
-REUSE
-EXTENT MANAGEMENT LOCAL
-SYSAUX DATAFILE '/u01/app/oracle/oradata/myinst/sysaux01.dbf' SIZE
-325M REUSE
-DEFAULT TEMPORARY TABLESPACE tempts1
-TEMPFILE '/u01/app/oracle/oradata/myinst/temp01.dbf'
-SIZE 20M REUSE
-UNDO TABLESPACE undotbs
-DATAFILE '/u01/app/oracle/oradata/myinst/undotbs01.dbf' SIZE 200M REUSE AUTOEXTEND ON MAXSIZE UNLIMITED;
+USERNAME		       DEFAULT_TABLESPACE
+------------------------------ ------------------------------
+SYSTEM			       SYSTEM
+SYS			       SYSTEM
+OUTLN			       SYSTEM
+DBSNMP			       SYSAUX
+APPQOSSYS		       SYSAUX
 ```
 
-6. Démarrage de l'instance en mode nomount :
->  startup nomount pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
-puis éxecuter le script (ci-dessus) de création de la base de données 
 
-7. monter le fichier
->  startup  pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
+```sql
+SELECT TABLESPACE_NAME FROM DBA_DATA_FILES;
 
-verfication des fichiers de base de données : 
-```SQL
-select name,blocks from v$datafile;
-
-> /u01/app/oracle/oradata/myinst/system01myinst.dbf
-     12800
-
-/u01/app/oracle/oradata/myinst/sysaux01.dbf
-     41600
-
-/u01/app/oracle/oradata/myinst/undotbs01.dbf
-     25600
-```
-8. affichage des utilisateurs de la base de données :
-```SQL
-select * from all_users
-```
-> Erreur
-#### Création des vues du dictionnaire de données et création des packages standard
-
-1. Création des vues du dictionnaire de données
-```SQL
-start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/catalog.sql
-```
-2. Affichage des noms des utilisateur de la base de données
-```SQL
-select username from dba_users;
-```
-3. 
-```SQL
-start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/catproc.sql
-```
-4. Script de création de la base de données exemple
-```SQL
-start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/utlsampl.sql
+TABLESPACE_NAME
+------------------------------
+SYSTEM
+SYSAUX
+UNDOTBS
+DATA01
+INDX01
+RONLY
+DATA01
 ```
 
+5. Mettre le tablespace DATA01 comme tablespace par défaut.
+```sql
+ALTER DATABASE default TABLESPACE DATA01;
+Database altered
+
+select username, default_tablespace from dba_users;
+
+USERNAME		       DEFAULT_TABLESPACE
+------------------------------ ------------------------------
+SYSTEM			       SYSTEM
+SYS			       SYSTEM
+OUTLN			       SYSTEM
+DBSNMP			       SYSAUX
+APPQOSSYS		       SYSAUX
+ORACLE_OCM		       DATA01
+DIP			       DATA01
+SCOTT			       DATA01
+```
+6. Liste des tablespaces temporaires par défaut
+```sql
+select file_name,tablespace from dba_temp_files;
+
+USERNAME		       DEFAULT_TABLESPACE
+------------------------------ ------------------------------
+SYSTEM			       SYSTEM
+SYS			       SYSTEM
+OUTLN			       SYSTEM
+DBSNMP			       SYSAUX
+APPQOSSYS		       SYSAUX
+ORACLE_OCM		       DATA01
+DIP			       DATA01
+SCOTT			       DATA01
+```
+
+9. 
+> il y a 2 solution pour augmenter la taille des tablespace : 
+    - soit on ajoute des fichiers au table space
+    -soit on choisi un fichier et on augmente sa taille.
+
+```sql
+ALTER DATABASE DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data01' resize 5m
+ALTER TABLESPACE DATA01 ADD DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data02' size 2m 
+```
 
 
 
