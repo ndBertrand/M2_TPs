@@ -3,9 +3,7 @@ Master 2 Informatique
 Systèmes d'information et d'aide à la décision
 Année Académique : 2017-2018
 
-# Administration des bases de données - TP1
-## Compte rendu
-
+## Administration des bases de données - TP1
 ### Analyse d'une instance Oracle existance
 
 1. connection à une instance oracle
@@ -14,6 +12,7 @@ Xhost +
 ssh -x oracle@172.16.36.132
 password : oracle
 sqlplus  / as sysdba
+startup
 ```
 2. nom de l'instance surlequel on est connecté
 ```SQL
@@ -47,7 +46,10 @@ select name,blocks from v$datafile;
 
 /u01/app/oracle/oradata/orcl/example01.dbf     12800
 ```
-
+5. Les options installées 
+```SQL
+SELECT * FROM BA_FEATURE_USAGE_STATISTICS;
+```
 6. Le numéro de version 
 ```SQL
 select version from v$instance;
@@ -55,12 +57,18 @@ VERSION
 -----------------
 11.2.0.1.0
 ```
-7. le nombre de paramètrer(s)
+7. le nombre maximum de processus utilisateur pouvant se connecter en même temps
 ```SQL
 select value from v$parameter where name  ='processes';
 150
 ```
-8.
+8. Le nombre de vues dynamiques
+```SQL
+select count(*) as nbr from v$fixed_table where type='VIEW';
+COUNT(*)
+----------
+1023
+```
 9. Modification de la taille des blocks
 > Erreur
 > DB_BLOCK_SIZE must be 8192 to mount this database (not 16384)
@@ -101,17 +109,40 @@ connect scott/tiger
 ou
 sqlplus scott/tiger
 ```
+
+
+### Arrêt et démarrage d'une instance
+
+2. Insertion de lignes dans la table EMP
 ```SQL
 INSERT INTO EMP (EMPNO,ENAME,JOB,MGR,SAL,DEPTNO)VALUES(800,'DUPONT','ANALYST',7566,1500,20);
 ```
+3.
+> En essayant d'arrête la session en mode transactionnel, à partir de la session **SYS** on constate qu'il ne se passe rien tant que l'ulisateur **SCOTT** n'a pas commité son insertion.
+
+4. En essayant de se connecter en tant que scott/tiger, oracle nous indique que l'arrêt de l'instance est en cours et qu'aucune action n'est permise
+```SQL
+ERROR:
+ORA-01089: immediate shutdown in progress - no operations are permitted
+Process ID: 0
+Session ID: 0 Serial number: 0
+```
+5. Aprés la validantion de la transaction de **scott**, l'instance d'oracle s'arrête
+```SQL
+shutdown transactional
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+```
 > avec le mode **Normale** : il y a un arrêt une fois que tous le autres utilisateurs se soient déconnectés
-> avec le mode **Transaction** : il y a un arrêt une fois que toutes les transactions sont validées (dans notre exemple il y aura un arrêt après avoir fait un COMMIT de la requête d'insertion dans la table EMP) même s'il y a encore des utilisateurs connectés.
+> avec le mode **Transactional** : il y a un arrêt une fois que toutes les transactions sont validées (dans notre exemple il y aura un arrêt après avoir fait un COMMIT de la requête d'insertion dans la table EMP) même s'il y a encore des utilisateurs connectés.
 > avec le mode **Immediate** : il y a un arrêt immediate  
 > avec le mode **Abort** : on force l'arrêt 
 
+
 ### Création d'une base de données
 
-1. question 1,2,3 faire des mkdir dans les dossier correspondant
+1. QuestionS 1,2,3 faire des mkdir dans les dossier correspondant
 ```
 mkdir /u01/app/oracle/admin/myinst
 mkdir /u01/app/oracle/oradata/myinst /u01/app/oracle/flash_recovery_data/myinst
@@ -190,7 +221,6 @@ start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/catproc.sql
 ```SQL
 start /u01/app/oracle/product/11.2.0.4/db_1/rdbms/admin/utlsampl.sql
 ```
-
 
 
 

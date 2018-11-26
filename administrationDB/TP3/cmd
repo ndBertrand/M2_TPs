@@ -96,3 +96,57 @@ il y a 2 solution pour augmenter la taille des tablespace :
 
 ALTER DATABASE DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data01' resize 5m
 ALTER TABLESPACE DATA01 ADD DATAFILE '/u01/app/oracle/oradata/myinst/Disk4/data02' size 2m 
+
+Qeustion 10
+********************************
+
+
+select FILE_NAME, TABLESPACE_NAME from  DBA_DATA_FILES WHERE TABLESPACE_NAME = 'INDX01';
+
+ALTER TABLESPACE INDX01 OFFLINE;
+ALTER TABLESPACE INDX01 RENAME DATAFILE '/u01/app/oracle/oradata/myinst/Disk3/indx01' TO '/u01/app/oracle/oradata/myinst/Disk1/indx01';
+ALTER TABLESPACE INDX01 ONLINE;
+
+****************************
+
+
+
+
+Question 11
+
+ALTER TABLESPACE RONLY READ WRITE;
+
+ALTER DATABASE DATAFILE '/u01/app/oracle/oradata/myinst/Disk1/indx01' RESIZE 20M;
+ALTER TABLESPACE RONLY RESIZE
+
+CREATE TABLE subjects (
+	id    NUMBER(5) PRIMARY KEY,
+  	name  VARCHAR(10) NOT NULL
+  	);
+TABLESPACE RONLY;
+
+
+
+CREATE TABLE scott.matable (
+         empno      NUMBER(5) PRIMARY KEY,
+         ename      VARCHAR2(15) NOT NULL,
+         ssn        NUMBER(9) ENCRYPT,
+         job        VARCHAR2(10),
+         mgr        NUMBER(5),
+         hiredate   DATE DEFAULT (sysdate),
+         photo      BLOB,
+         sal        NUMBER(7,2),
+         comm       NUMBER(7,2)
+         );
+   TABLESPACE RONLY;
+
+
+
+15 
+
+SELECT TABLESPACE_NAME , 
+   max(BLOCKS) AS MAXIMUM,
+   min(BLOCKS) AS MINIMUM,
+   sum(BLOCKS) AS TOTAL
+   FROM DBA_FREE_SPACE
+GROUP BY TABLESPACE_NAME;
