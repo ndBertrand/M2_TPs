@@ -9,6 +9,13 @@ b. COPY FROM scott.emp@myinst to
 CREATE kay.emp
 USING SELECT * FROPM scott.emp;
 
+
+******
+pour copier la talbe d'un autre utilisateur
+
+create tale emp as select * from scott.emp;
+*****
+
 3. 
 
 
@@ -42,5 +49,22 @@ SELECT USERNAME, PROFILE, ACCOUNT_STATUS FROM DBA_USERS WHERE USERNAME='BOB';
 
 
 CREATE USER kay IDENTIFIED BY mary;
-GRANT CONNECT, CREATE TO kay ON kay;
+
+SELECT username FROM all_users ORDER BY username; 
+
+GRANT connect, create table TO  kay;
+
+
+
+
+*******************************************************************************
+quant on cré un user il faut lui donner les privilèges
+
+CREATE SESSION POUR QU'il puisse se connecter
+CREATE TABLE pour qu'il puisse créer une sessiojn
+et lui donner un quota
+
+
+***********************************************
+
 

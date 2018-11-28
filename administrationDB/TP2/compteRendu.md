@@ -3,191 +3,171 @@ Master 2 Informatique
 Systèmes d'information et d'aide à la décision
 Année Académique : 2017-2018
 
-## Administration des bases de données - TP2
-### Utilisation des outils d'adminstartion mode ligne
-1. Connection en tant que SYS à l'instance oracle myinst. 
+## Administration des bases de données - TP
+
+### Gestion des utilisateurs
+
+1. Création de l'utilisateur bob avec comme tablespace par défaut DATA01
+```SQL
+CREATE USER bob IDENTIFIED BY along DEFAULT TABLESPACE DATA01;
+
+User created
+```
+
+2 
+a . Création de l'utilisteur kay avec les droit nécessaire pour pouvoir se connecter et créer des objets.
+
+> On peut aussi lui attribuer toutes les privilèges
+
+```SQL
+GRANT CONNECT TO kay IDENTIFIED BY mary;
+
+Grant succeeded.
+
+GRANT ALL PRIVILEGES TO kay;
+
+Grant succeeded.
+```
+b. 
+3. Affichage des informations(username, état du compte , tablespace) pour bob et kay.
+
+```SQL
+SELECT USERNAME,ACCOUNT_STATUS,DEFAULT_TABLESPACE FROM DBA_USERS WHERE USERNAME='BOB';
+
+USERNAME		       ACCOUNT_STATUS
+------------------------------ --------------------------------
+DEFAULT_TABLESPACE
+------------------------------
+BOB			       OPEN
+DATA01
+```
+
+5. Allocation d'un quota de 5M sur le tablespace DATA01.
+```SQL
+ ALTER USER kay QUOTA 5M ON DATA01;
+User altered.
+```
+> Il faut éxecuter la commande suivante dans la session de kay
+
+```SQL
+SELECT * FROM USER_TS_QUOTAS;
+
+TABLESPACE_NAME 	BYTES  MAX_BYTES	 BLOCKS     MAX_BLOCKS  DRO
+-------------------------------------------------------------------
+DATA01			    0      5242880	      0         640         NO
+```
+
+6. Suppression du quota de l'utilisateur kay sur son tablespace par défaut.
+
+```SQL
+ ALTER USER kay QUOTA 0K ON DATA01;
+User altered.
+```
+> Il faut éxecuter la commande suivante dans la session de kay
+
+```SQL
+SELECT * FROM USER_TS_QUOTAS;
+
+TABLESPACE_NAME 	BYTES  MAX_BYTES	 BLOCKS    MAX_BLOCKS   DRO
+-------------------------------------------------------------------
+DATA01			    0      0	         0         0            NO
+
+```
+
+7. Suppression en cascade du compte de kay
+```SQL
+DROP USER kay CASCADE;
+User dropped.
+```
+
+8. Mise à jour du mot de passe pour l'utilisateur Bob
 ```sql
-sqlplus / as sysdba
-startup pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst.ora
-show parameter instance_name
-NAME				     TYPE	 VALUE
------------------------------------- ----------- ------------------------------
-instance_name			string	 myinst
+ALTER USER bob IDENTIFIED BY olink;
+User altered.
+ALTER USER bob PASSWORD EXPIRE;
+User altered.
 ```
+9.
+`connect bob/olink
+ERROR:
+ORA-28001: the password has expired`
 
-2. Taille du buffer cache de données.
-```sql
-SELECT * FROM v$sga;
-NAME			        VALUE
--------------------- ----------
-Fixed Size		        2213736
-Variable Size	        922749080
-Database Buffers        654311424
-Redo Buffers		    7434240
+>Changing password for bob
+New password: 
+Retype new password: 
+`ERROR:
+ORA-01045: user BOB lacks CREATE SESSION privilege; logon denied`
+Password changed
+
+> On constate que bob n'a pas le droit de se connecter ce qui est normale parcequ'on ne lui a pas en attribué ce droit, mais il a pu changer son mot de passe.
+
+### Gestion des profils
+
+1. 
+```SQL
+select * from dba_profiles;
 ```
+PROFILE | RESOURCE_NAME | RESOURCE | LIMIT
+------- | ------------- | -------- | -----
+DEFAULT | COMPOSITE_LIMIT | KERNEL | UNLIMITED
+DEFAULT | SESSIONS_PER_USER | KERNEL | UNLIMITED
+DEFAULT | CPU_PER_SESSION | KERNEL | UNLIMITED
+DEFAULT | CPU_PER_CALL | KERNEL | UNLIMITED
+DEFAULT | LOGICAL_READS_PER_SESSION | KERNEL | UNLIMITED
+DEFAULT | LOGICAL_READS_PER_CALL | KERNEL | UNLIMITED
+DEFAULT | IDLE_TIME | KERNEL | UNLIMITED
+DEFAULT | CONNECT_TIME | KERNEL | UNLIMITED
+DEFAULT | PRIVATE_SGA | KERNEL | UNLIMITED
+DEFAULT | FAILED_LOGIN_ATTEMPTS | PASSWORD | 10
+DEFAULT | PASSWORD_LIFE_TIME | PASSWORD | 180
+DEFAULT | PASSWORD_REUSE_TIME | PASSWORD | UNLIMITED
+DEFAULT | PASSWORD_REUSE_MAX | PASSWORD | UNLIMITED
+DEFAULT | PASSWORD_VERIFY_FUNCTION | PASSWORD | NULL
+DEFAULT | PASSWORD_LOCK_TIME | PASSWORD | 1
+DEFAULT | PASSWORD_GRACE_TIME | PASSWORD | 7
 
-3. Taille du SGA
-> La taille du SGA est la somme de toutes les tailles.
-```sql
-SELECT SUM(value) from v$sga;
-SUM(VALUE)
-----------
-1586708480
 
-```
 
-4. Lister les colonnes, **owner**, **table_name**, **tablespace_name** de la vue **dba_tables** du dictinnaire de données pour les tables et les tables et tablespaces dont le propriétaire est l'utilsateur  SCOTT.
+2. 
+a. Création d'un nouveau profil de sorte que deux sessions par utilisateur soit permises et que le temps d'inactivité soit à une minute.
 
 ```SQL
-select owner,table_name, tablespace_name from dba_tables where owner='SCOTT';
-
-OWNER			       TABLE_NAME       TABLESPACE_NAME
--------------------------------------------------------
-SCOTT			       DEPT             USERS
-SCOTT			       EMP              USERS
-SCOTT			       BONUS            USERS
-SCOTT			       SALGRADE         USERS
+CREATE PROFILE myprofile LIMIT
+	SESSIONS_PER_USER	2
+	CONNECT_TIME 		1;  
+	
+Profile created.
 ```
-
-`NE PAS FAIRE LES QUESTIONS 5,6,7 ET 8`
-
-### Mise à jour du ficher de contrôle
-1. Sauvegarde du fichier de contrôle
-```sql
-ALTER DATABASE BACKUP CONTROLFILE TO TRACE;
-Database altered.
-```
-> Cette commande crée un fichier texte dans le répertoire **USER_DUMP_DEST**, qu'on peut modifier pour reconstruire un nouveau fichier de contrôle.
-
-2. Vérification de création des fichiers de contrôle. 
-> En regardant le fichier le fichier **alert_orcl.log** se trouvant **/u01/app/oracle/diag/rdbms/orcl/orcl/trace** à la fin de fichier, l'emplacement des sauvegardes est marqué.
-```txt
-Fri Oct 26 16:20:13 2018
-ALTER DATABASE BACKUP CONTROLFILE TO TRACE
-Backup controlfile written to trace file /u01/app/oracle/diag/rdbms/orcl/orcl/trace/orcl_ora_2990.trc
-```
-3. Emplacement des souvegarde.
-```sql
-show parameter control_files
-
-NAME				     TYPE	 VALUE
------------------------------------- ----------- ------------------------------
-control_files			string	 /u01/app/oracle/oradata/myinst/control01.ctl
-```
-4. Démarrage sans fichier de contôle
-```sql
-startup pfile=/u01/app/oracle/admin/orcl/pfile/init2.ora
-ORA-00205: error in identifying control file, check alert log for more info
-```
-> Il a une erreur lors de l'ouverture de la base de données.
-
-
-5. Multiplexage du ficher de controle
-
-> si on a 2 ou plusieurs fichiers de controle, ce sont les même(ce sont des copie )
- * faire un shutdown immediate(obligatoire pour ne pas avoir de problème)
- * modifier le fichier de paramètre(le fichier init) 
- * décommenter la ligne avec **controle_files**
- * on le ajoute un autre fichier de contolre ("--------","---------","---------)
- *ensuite faire la copier du fichier de controle qlq part sur le disk comme $HOME/DISK2
- * après on redemare 
-Vérification que le fichier de contrôle a bien été crée.
 ```SQL
-    startup pfile=/u01/app/oracle/admin/myinst/pfile/initmyinst2.ora
- select name from v$controlfile;
-```
+SELECT * FROM DBA_PROFILES
+WHERE PROFILE='MYPROFILE' AND RESOURCE_NAME IN ('SESSIONS_PER_USER','CONNECT_TIME');  
 
-6. Le nombre maximum de fichiers de données que l'on puisse créer dans la base de données aisn que le le nombre actuell de fichiers de données dans la base de données. 
-```sql
-select records_total, records_used from v$controlfile_record_section where type='DATAFILE';
- RECORDS_TOTAL RECORDS_USED
-------------- ------------
-	    30		 7
-```
-> Comme spécifier dans le script de création de la bse de données du TP1, le nombre maximum de ficher que l'on puisse créer est égale à **30**
+PROFILE 		       RESOURCE_NAME			RESOURCE    LIMIT
+-----------------------------------------------------------------
+MYPROFILE		       SESSIONS_PER_USER		KERNEL      2
 
-### Mise à jour des fichiers de reprise
+MYPROFILE		       CONNECT_TIME			    KERNEL      1
+````
 
-1. Enumération du nombre et de l'emplacement des fichiers de reprise existants.
-```SQL
- select member from v$logfile;
-
-MEMBER
---------------------------------------------------------------------------------
-/u01/app/oracle/oradata/orcl/redo03.log
-/u01/app/oracle/oradata/orcl/redo02.log
-/u01/app/oracle/oradata/orcl/redo01.log
-```
-2. mode d'archivage
-> le mode d'archivage n'est pas activé
-```SQL
-select log_mode from v$database;
-LOG_MODE
-------------
-NOARCHIVELOG
-```
-3. le groupe courant
-> le groupe courant est le groupe 2
-```SQL
-select * from v$log where status = 'CURRENT';
-
-GROUP#    THREAD#  SEQUENCE#      BYTES  BLOCKSIZE	  MEMBERS ARC
----------- ---------- ---------- ---------- ---------- ---------- ---
-STATUS		 FIRST_CHANGE# FIRST_TIM NEXT_CHANGE# NEXT_TIME
----------------- ------------- --------- ------------ ---------
-	 2	    1	      14   52428800	   512		1 NO
-CURRENT 	       1205703 26-OCT-18   2.8147E+14
-```
-
-4. Modification du groupe courant 
-```SQL
-ALTER SYSTEM SWITCH LOGFILE ; 
-System altered.
-```
+b.
 
 ```SQL
-select * from v$log where status = 'CURRENT';
-GROUP#    THREAD#  SEQUENCE#      BYTES  BLOCKSIZE	  MEMBERS ARC
----------- ---------- ---------- ---------- ---------- ---------- ---
-STATUS		 FIRST_CHANGE# FIRST_TIM NEXT_CHANGE# NEXT_TIME
----------------- ------------- --------- ------------ ---------
-	 3	    1	      15   52428800	   512		1 NO
-CURRENT 	       1215552 26-OCT-18   2.8147E+14
+ALTER USER bob PROFILE MYPROFILE;
+User altered.
+SELECT USERNAME, PROFILE, ACCOUNT_STATUS FROM DBA_USERS WHERE USERNAME='BOB';
+USERNAME		       PROFILE          ACCOUNT_STATUS
+------------------------------------------------------
+BOB			          MYPROFILE            OPEN
 ```
-> On constate que effectivement, le groupe courrant est passé de 2 à 3
 
-5.  Ajout d'un membre de reprise à chaque Groupe
-```SQL
-ALTER DATABASE ADD LOGFILE MEMBER '/u01/app/oracle/oradata/orcl/redo01a.log' to GROUP 1;
-Database altered.
-ALTER DATABASE ADD LOGFILE MEMBER '/u01/app/oracle/oradata/orcl/redo02a.log' to GROUP 2;     
-Database altered.
-ALTER DATABASE ADD LOGFILE MEMBER '/u01/app/oracle/oradata/orcl/redo03a.log' to GROUP 3;    
-Database altered.
-```
-Verification
-```SQL
-select members from v$log;
-MEMBERS
-----------
-	 2
-	 2
-	 2
+c.
 
-```
-> on constate que chaque groupe à maintenant 2fichiers de de reprises
-> les fichiers  redo1a.log, redo2a.log et redoa3.log ont été crée dans le répertoire /u01/app/oracle/oradata/orcl
+### Gestion des privilèges
 
-6. Création d'un nouveau groupe de reprise dans le répertoire DISK4 
+1. création de l'utilisateur kay
 ```SQL
-alter database add logfile ('/home/oracle/adminbd/DISK4/gzlog.rdo') size 4m;
-
-Database altered.
-```
-vérification
-```SQL
-select count(*) from v$log;
-  COUNT(*)
-----------
-	 4
+CREATE USER kay IDENTIFIED BY mary;
+User created.
+GRANT CREATE TABLE TO kay;
+Grant succeeded.
 ```
