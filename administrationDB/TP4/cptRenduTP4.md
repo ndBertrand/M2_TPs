@@ -3,7 +3,7 @@ Master 2 Informatique
 Systèmes d'information et d'aide à la décision
 Année Académique : 2017-2018
 
-## Administration des bases de données - TP
+## Administration des bases de données - TP 4
 
 ### Gestion des utilisateurs
 
@@ -14,19 +14,36 @@ CREATE USER bob IDENTIFIED BY along DEFAULT TABLESPACE DATA01;
 User created
 ```
 
-2 Création de l'utilisteur kay avec les droit nécessaire pour pouvoir se connecter et créer des objets.
-
-> On peut aussi lui attribuer toutes les privilèges
+2 
+a . Création de l'utilisteur kay avec les droit nécessaire pour pouvoir se connecter et créer des objets.
 
 ```SQL
 GRANT CONNECT TO kay IDENTIFIED BY mary;
 
 Grant succeeded.
 
-GRANT ALL PRIVILEGES TO kay;
+GRANT connect, create table TO  kay;
 
 Grant succeeded.
 ```
+a. Connection en tant que kay dans une nouvelle session
+```sql
+sqlplus kay/mary
+```
+b. copie de la able EMP à partir du schéma SCOTT dans le compte kay.
+```sql
+CREATE TABLE EMP AS SELECT  * FROM scott.emp;
+```
+`ERROR at line 1:
+ORA-00942: table or view does not exist`
+```sql
+GRANT SELECT ON scott.emp to kay;
+Grant succeeded.
+
+create table emp as select * from scott.emp;
+Table created.
+```
+>Pour y arriver on donne à kay le droit de faire un select sur la table EMP DE SCOTT.
 
 3. Affichage des informations(username, état du compte , tablespace) pour bob et kay.
 
@@ -74,10 +91,13 @@ DATA01			    0      0	         0         0            NO
 ```
 
 7. Suppression en cascade du compte de kay
+
 ```SQL
 DROP USER kay CASCADE;
 User dropped.
 ```
+> pour supprimer l'utilisateur kay, il faut le déconnecter avant. Sinon il y a le message d'erreur suivant `ERROR at line 1:
+ORA-01940: cannot drop a user that is currently connected`
 
 8. Mise à jour du mot de passe pour l'utilisateur Bob
 ```sql
@@ -148,7 +168,7 @@ MYPROFILE		       SESSIONS_PER_USER		KERNEL      2
 MYPROFILE		       CONNECT_TIME			    KERNEL      1
 ````
 
-b.
+b. 
 
 ```SQL
 ALTER USER bob PROFILE MYPROFILE;
@@ -161,5 +181,12 @@ BOB			          MYPROFILE            OPEN
 
 c.
 
-
 ### Gestion des privilèges
+
+1. création de l'utilisateur kay
+```SQL
+CREATE USER kay IDENTIFIED BY mary;
+User created.
+GRANT CREATE TABLE TO kay;
+Grant succeeded.
+```
