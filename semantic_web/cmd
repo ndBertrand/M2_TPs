@@ -1,0 +1,7 @@
+#! /bin/bash
+
+echo "command 3"
+arq --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg4.txt
+
+
+

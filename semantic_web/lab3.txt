@@ -1,0 +1,173 @@
+Bertrand NDAYISENGA
+Master II informatique
+Université Clermont-Auvergne
+Année Académique
+
+						*****************
+						TP 3 SEMANTIC WEB
+						*****************
+
+Exercice  2 : QUERYING MULTIPLE RDF GRAPHS
+
+
+1. 
+
+
+(a) 
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+ namedGraph = G-Bob.ttl default graph = G-Alice.ttl 
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	requête sur qmg1
+	-----------------
+		arq --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --graph=/opt/semantic-web-lab/mydata/G-Alice.ttl --query=/opt/semantic-web-lab/myqueries/qmg1.txt
+		-----------------------------------------------------------
+		| g                                               | y     |
+		===========================================================
+		| <file:///opt/semantic-web-lab/mydata/G-Bob.ttl> | "Bob" |
+		-----------------------------------------------------------
+		commentaire
+		-----------
+		le requête n'utilise que la named graph
+
+
+	requête sur qmg2
+	-----------------
+		arq --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --graph=/opt/semantic-web-lab/mydata/G-Alice.ttl --query=/opt/semantic-web-lab/myqueries/qmg2.txt
+		---------
+		| g | y |
+		=========
+		---------
+
+
+	requête sur qmg3
+	----------------
+		arq --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --graph=/opt/semantic-web-lab/mydata/G-Alice.ttl --query=/opt/semantic-web-lab/myqueries/qmg3.txt
+
+		-----------------------------------------------------------
+		| g                                               | y     |
+		===========================================================
+		| <file:///opt/semantic-web-lab/mydata/G-Bob.ttl> | "Bob" |
+		-----------------------------------------------------------
+
+
+commentaire
+-----------
+
+Nous avons le résultat que pour les requêtes qui ont 
+FROM NAMED </opt/semantic-web-lab/mydata/G-Bob.ttl>
+
+
+(b)
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+ namedGraph = G-Alice.ttl default graph = G-Bob.ttl 
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+		requête sur qmg1
+		-----------------
+			arq --namedgraph=/opt/semantic-web-lab/mydata/G-Alice.ttl --graph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg1.txt
+			---------------------------------------------------------------
+			| g                                                 | y       |
+			===============================================================
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Bob"   |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Alice" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Marie" |
+			---------------------------------------------------------------
+
+
+		requête sur qmg2
+		-----------------
+			arq --namedgraph=/opt/semantic-web-lab/mydata/G-Alice.ttl --graph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg2.txt
+			---------------------------------------------------------------
+			| g                                                 | y       |
+			===============================================================
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Alice" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Marie" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Bob"   |
+			---------------------------------------------------------------
+
+
+		requête sur qmg3
+		----------------
+			arq --namedgraph=/opt/semantic-web-lab/mydata/G-Alice.ttl --graph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg3.txt
+			---------------------------------------------------------------
+			| g                                                 | y       |
+			===============================================================
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Alice" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Marie" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Bob"   |
+			---------------------------------------------------------------
+			
+
+
+
+
+
+
+(c)
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+ namedGraph = G-Bob.ttl default namedGraph= G-Alice.ttl 
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+		requête sur qmg1
+		----------------
+			arq --namedgraph=/opt/semantic-web-lab/mydata/G-Alice.ttl --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg1.txt
+
+			---------------------------------------------------------------
+			| g                                                 | y       |
+			===============================================================
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Marie" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Alice" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Bob"   |
+			| <file:///opt/semantic-web-lab/mydata/G-Bob.ttl>   | "Bob"   |
+			---------------------------------------------------------------
+
+
+		requête sur qmg2
+		----------------
+			arq --namedgraph=/opt/semantic-web-lab/mydata/G-Alice.ttl --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg2.txt
+			---------------------------------------------------------------
+			| g                                                 | y       |
+			===============================================================
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Marie" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Alice" |
+			| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Bob"   |
+			---------------------------------------------------------------
+
+
+
+		requête sur qmg3
+		----------------
+			arq --namedgraph=/opt/semantic-web-lab/mydata/G-Alice.ttl --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg3.txt
+		---------------------------------------------------------------
+		| g                                                 | y       |
+		===============================================================
+		| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Alice" |
+		| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Marie" |
+		| <file:///opt/semantic-web-lab/mydata/G-Alice.ttl> | "Bob"   |
+		| <file:///opt/semantic-web-lab/mydata/G-Bob.ttl>   | "Bob"   |
+		---------------------------------------------------------------
+
+
+
+
+
+2.
+
+
+arq --namedgraph=/opt/semantic-web-lab/mydata/G-Bob.ttl --query=/opt/semantic-web-lab/myqueries/qmg4.txt
+
+---------
+| y     |
+=========
+| "Bob" |
+---------
+
+
+3.
+
+
+EXERCICE 3  : QUERY A REMOTE DATASET
+
+
+
